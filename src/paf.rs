@@ -248,15 +248,68 @@ impl PafFile {
         let q_start = paf_query_begin(line);
         let q_end = paf_query_end(line);
         let id = 0;
-        println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start, t_end, q_name, q_size, q_strand, q_start, q_end, id);
-        for cigar in cigars {
+        for mut cigar in cigars {
             //println!("{}", cigar);
+
+            let mut first: usize = 0;
+
+            // Trim INDELs at the beginning and at the end of the CIGAR string
+            let mut first_not_indel_found = false;
+            let mut trim_from: usize = 0;
+            let mut query_from_delta: usize = 0;
+            let mut target_from_delta: usize = 0;
+            let mut trim_to: usize = 0;
+            let mut query_to_delta: usize = 0;
+            let mut target_to_delta: usize = 0;
+            for (i, b) in cigar.bytes().enumerate() {
+                let c = b as char;
+                //println!("{} {}", i, b as char);
+                match c {
+                    'M' | '=' | 'X' => {
+                        first = i + 1;
+
+                        trim_to = i + 1;
+                        query_to_delta = 0;
+                        target_to_delta = 0;
+
+                        first_not_indel_found = true;
+                    }
+                    'D' => {
+                        let n = cigar[first..i].parse::<usize>().unwrap();
+                        first = i + 1;
+
+                        if !first_not_indel_found {
+                            trim_from = i + 1;
+                            target_from_delta += n;
+                        }
+
+                        target_to_delta += n;
+                    }
+                    'I' => {
+                        let n = cigar[first..i].parse::<usize>().unwrap();
+                        first = i + 1;
+
+                        if !first_not_indel_found {
+                            trim_from = i + 1;
+                            query_from_delta += n;
+                        }
+
+                        query_to_delta += n;
+                    }
+                    _ => {}
+                }
+            }
+
+            cigar = &cigar[trim_from..trim_to];
+
+            // Header line
+            println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta, q_name, q_size, q_strand, q_start + query_from_delta, q_end - query_to_delta, id);
 
             let mut ungapped_alignment_len: usize = 0;
             let mut query_delta: usize = 0;
             let mut target_delta: usize = 0;
 
-            let mut first: usize = 0;
+            first = 0;
             for (i, b) in cigar.bytes().enumerate() {
                 let c = b as char;
                 //println!("{} {}", i, b as char);
@@ -272,9 +325,10 @@ impl PafFile {
                             println!("{}\t{}\t{}", ungapped_alignment_len, target_delta, query_delta);
 
                             ungapped_alignment_len = 0;
-                            target_delta = 0;
-                            query_delta = 0;
                         }
+
+                        target_delta = 0;
+                        query_delta = 0;
 
                         ungapped_alignment_len += n;
                     }
@@ -294,14 +348,6 @@ impl PafFile {
                     }
                     _ => {}
                 }
-            }
-
-            if ungapped_alignment_len > 0 && (query_delta > 0 || target_delta > 0) {
-                println!("{}\t{}\t{}", ungapped_alignment_len, target_delta, query_delta);
-
-                ungapped_alignment_len = 0;
-                target_delta = 0;
-                query_delta = 0;
             }
 
             println!("{}", ungapped_alignment_len);
