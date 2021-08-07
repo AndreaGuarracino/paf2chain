@@ -236,6 +236,19 @@ impl PafFile {
             cigars.push(fake_cigar.as_str());
         }
 
+        let score = 255;
+        let t_name = paf_target(line);
+        let t_size = paf_target_length(line);
+        let t_strand = "+";
+        let t_start = paf_target_begin(line);
+        let t_end = paf_target_end(line);
+        let q_name = paf_query(line);
+        let q_size = paf_query_length(line);
+        let q_strand = if paf_query_is_rev(line) { "-"} else {"+"};
+        let q_start = paf_query_begin(line);
+        let q_end = paf_query_end(line);
+        let id = 0;
+        println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start, t_end, q_name, q_size, q_strand, q_start, q_end, id);
         for cigar in cigars {
             //println!("{}", cigar);
 
@@ -287,6 +300,7 @@ impl PafFile {
                 println!("{}", ungapped_alignment_len);
             }
         }
+        println!();
     }
 
     pub(crate) fn for_each_match_in_file<F>(self: &PafFile, mut func: F)
