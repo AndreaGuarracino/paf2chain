@@ -1,16 +1,3 @@
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
-use std::path::Path;
-//use std::cmp;
-
-use boomphf::*;
-
-use rgb::*;
-extern crate line_drawing;
-use line_drawing::XiaolinWu;
-
-use itertools::Itertools;
-
 extern crate clap;
 use clap::{App, Arg}; //, SubCommand};
 
@@ -38,9 +25,9 @@ fn main() {
     // for each match, we draw a line on our raster using Xiaolin Wu's antialiased line algorithm
     let draw_match = |line: &str| {
         let query_rev = paf_query_is_rev(line);
-        let (x, y) = paf.global_start(line, query_rev);
-        let mut target_pos = x;
-        let mut query_pos = y;
+        //let (x, y) = paf.global_start(line, query_rev);
+        //let mut target_pos = x;
+        //let mut query_pos = y;
         // find and walk the cigar string
         //println!("{}", line);
         let mut cigars = line
@@ -72,7 +59,7 @@ fn main() {
         let t_end = paf_target_end(line);
         let q_name = paf_query(line);
         let q_size = paf_query_length(line);
-        let q_strand = if paf_query_is_rev(line) { "-"} else {"+"};
+        let q_strand = if query_rev { "-"} else {"+"};
         let q_start = paf_query_begin(line);
         let q_end = paf_query_end(line);
         let id = 0;
@@ -144,8 +131,8 @@ fn main() {
                 match c {
                     'M' | '=' | 'X' => {
                         let n = cigar[first..i].parse::<usize>().unwrap() as usize;
-                        query_pos += if query_rev { 0 - n } else { n };
-                        target_pos += n;
+                        //query_pos += if query_rev { 0 - n } else { n };
+                        //target_pos += n;
                         first = i + 1;
 
                         if ungapped_alignment_len > 0 && (query_delta > 0 || target_delta > 0) {
@@ -161,14 +148,14 @@ fn main() {
                     }
                     'D' => {
                         let n = cigar[first..i].parse::<usize>().unwrap();
-                        target_pos += n;
+                        //target_pos += n;
                         first = i + 1;
 
                         target_delta += n;
                     }
                     'I' => {
                         let n = cigar[first..i].parse::<usize>().unwrap();
-                        query_pos += if query_rev { 0 - n } else { n };
+                        //query_pos += if query_rev { 0 - n } else { n };
                         first = i + 1;
 
                         query_delta += n;
