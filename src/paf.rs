@@ -296,9 +296,15 @@ impl PafFile {
                 }
             }
 
-            if ungapped_alignment_len > 0 {
-                println!("{}", ungapped_alignment_len);
+            if ungapped_alignment_len > 0 && (query_delta > 0 || target_delta > 0) {
+                println!("{}\t{}\t{}", ungapped_alignment_len, target_delta, query_delta);
+
+                ungapped_alignment_len = 0;
+                target_delta = 0;
+                query_delta = 0;
             }
+
+            println!("{}", ungapped_alignment_len);
         }
         println!();
     }
