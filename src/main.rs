@@ -1,7 +1,9 @@
 extern crate clap;
+
 use clap::{App, Arg}; //, SubCommand};
 
 mod paf;
+
 use crate::paf::{PafFile, paf_query_end, paf_target, paf_target_length, paf_target_begin, paf_target_end, paf_query, paf_query_length, paf_query_is_rev, paf_query_begin};
 
 fn main() {
@@ -22,14 +24,14 @@ fn main() {
     let filename = matches.value_of("INPUT").unwrap();
     let paf = PafFile::new(filename);
 
-    // for each match, we draw a line on our raster using Xiaolin Wu's antialiased line algorithm
-    let draw_match = |line: &str| {
+    let cigar_to_chain = |line: &str| {
         let query_rev = paf_query_is_rev(line);
         //let (x, y) = paf.global_start(line, query_rev);
         //let mut target_pos = x;
         //let mut query_pos = y;
         // find and walk the cigar string
         //println!("{}", line);
+
         let mut cigars = line
             .split('\t')
             .skip_while(|s| !s.starts_with("cg:Z:"))
@@ -59,7 +61,7 @@ fn main() {
         let t_end = paf_target_end(line);
         let q_name = paf_query(line);
         let q_size = paf_query_length(line);
-        let q_strand = if query_rev { "-"} else {"+"};
+        let q_strand = if query_rev { "-" } else { "+" };
         let q_start = paf_query_begin(line);
         let q_end = paf_query_end(line);
         let id = 0;
@@ -168,5 +170,5 @@ fn main() {
         }
         println!();
     };
-    paf.for_each_line_in_file(draw_match);
+    paf.for_each_line_in_file(cigar_to_chain);
 }
