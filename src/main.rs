@@ -34,7 +34,7 @@ fn main() {
 
         let mut cigars = line
             .split('\t')
-            .skip_while(|s| !s.starts_with("cg:Z:"))
+            .filter(|s| s.starts_with("cg:Z:"))
             .map(|s| s.strip_prefix("cg:Z:").unwrap())
             .collect::<Vec<&str>>();
 
