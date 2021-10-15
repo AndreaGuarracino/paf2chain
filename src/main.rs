@@ -117,56 +117,60 @@ fn main() {
                 }
             }
 
-            cigar = &cigar[trim_from..trim_to];
+            // Check if there are ungapped alignments to write
+            //eprintln!("{} - {}", trim_from, trim_to);
+            if trim_from < trim_to {
+                cigar = &cigar[trim_from..trim_to];
 
-            // Header line
-            println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta, q_name, q_size, q_strand, q_start + query_from_delta, q_end - query_to_delta, id);
+                // Header line
+                println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta, q_name, q_size, q_strand, q_start + query_from_delta, q_end - query_to_delta, id);
 
-            let mut ungapped_alignment_len: usize = 0;
-            let mut query_delta: usize = 0;
-            let mut target_delta: usize = 0;
+                let mut ungapped_alignment_len: usize = 0;
+                let mut query_delta: usize = 0;
+                let mut target_delta: usize = 0;
 
-            first = 0;
-            for (i, b) in cigar.bytes().enumerate() {
-                let c = b as char;
-                //println!("{} {}", i, b as char);
-                match c {
-                    'M' | '=' | 'X' => {
-                        let n = cigar[first..i].parse::<usize>().unwrap() as usize;
-                        //query_pos += if query_rev { 0 - n } else { n };
-                        //target_pos += n;
-                        first = i + 1;
+                first = 0;
+                for (i, b) in cigar.bytes().enumerate() {
+                    let c = b as char;
+                    //println!("{} {}", i, b as char);
+                    match c {
+                        'M' | '=' | 'X' => {
+                            let n = cigar[first..i].parse::<usize>().unwrap() as usize;
+                            //query_pos += if query_rev { 0 - n } else { n };
+                            //target_pos += n;
+                            first = i + 1;
 
-                        if ungapped_alignment_len > 0 && (query_delta > 0 || target_delta > 0) {
-                            println!("{}\t{}\t{}", ungapped_alignment_len, target_delta, query_delta);
+                            if ungapped_alignment_len > 0 && (query_delta > 0 || target_delta > 0) {
+                                println!("{}\t{}\t{}", ungapped_alignment_len, target_delta, query_delta);
 
-                            ungapped_alignment_len = 0;
+                                ungapped_alignment_len = 0;
+                            }
+
+                            target_delta = 0;
+                            query_delta = 0;
+
+                            ungapped_alignment_len += n;
                         }
+                        'D' => {
+                            let n = cigar[first..i].parse::<usize>().unwrap();
+                            //target_pos += n;
+                            first = i + 1;
 
-                        target_delta = 0;
-                        query_delta = 0;
+                            target_delta += n;
+                        }
+                        'I' => {
+                            let n = cigar[first..i].parse::<usize>().unwrap();
+                            //query_pos += if query_rev { 0 - n } else { n };
+                            first = i + 1;
 
-                        ungapped_alignment_len += n;
+                            query_delta += n;
+                        }
+                        _ => {}
                     }
-                    'D' => {
-                        let n = cigar[first..i].parse::<usize>().unwrap();
-                        //target_pos += n;
-                        first = i + 1;
-
-                        target_delta += n;
-                    }
-                    'I' => {
-                        let n = cigar[first..i].parse::<usize>().unwrap();
-                        //query_pos += if query_rev { 0 - n } else { n };
-                        first = i + 1;
-
-                        query_delta += n;
-                    }
-                    _ => {}
                 }
-            }
 
-            println!("{}", ungapped_alignment_len);
+                println!("{}", ungapped_alignment_len);
+            }
         }
         println!();
     };
