@@ -122,12 +122,26 @@ fn main() {
             if trim_from < trim_to {
                 cigar = &cigar[trim_from..trim_to];
 
+                // Manage query start and end positions
+                let chain_q_start;
+                let chain_q_end;
+                if query_rev {
+                    chain_q_start = q_size - (q_end - query_from_delta);
+                    chain_q_end = q_size - (q_start + query_to_delta);
+                } else {
+                    chain_q_start = q_start + query_from_delta;
+                    chain_q_end = q_end - query_to_delta;
+                }
+
                 // Header line
                 println!(
                     "chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                     score,
-                    t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta,
-                    q_name, q_size, q_strand, q_start + (if query_rev { query_to_delta } else { query_from_delta }), q_end - (if query_rev { query_from_delta } else { query_to_delta }),
+                    t_name, t_size, t_strand,
+                    t_start + target_from_delta,
+                    t_end - target_to_delta,
+                    q_name, q_size, q_strand,
+                    chain_q_start, chain_q_end,
                     id
                 );
 
