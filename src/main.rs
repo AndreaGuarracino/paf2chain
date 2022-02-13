@@ -123,7 +123,13 @@ fn main() {
                 cigar = &cigar[trim_from..trim_to];
 
                 // Header line
-                println!("chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", score, t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta, q_name, q_size, q_strand, q_start + query_from_delta, q_end - query_to_delta, id);
+                println!(
+                    "chain\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    score,
+                    t_name, t_size, t_strand, t_start + target_from_delta, t_end - target_to_delta,
+                    q_name, q_size, q_strand, q_start + (if query_rev { query_to_delta } else { query_from_delta }), q_end - (if query_rev { query_from_delta } else { query_to_delta }),
+                    id
+                );
 
                 let mut ungapped_alignment_len: usize = 0;
                 let mut query_delta: usize = 0;
