@@ -20,3 +20,7 @@ With alignments in `aln.paf`, we would convert it into a CHAIN format file using
 ```
 paf2chain -i aln.paf > aln.chain
 ```
+
+## info
+
+`paf2chain` performs the reverse operation of [chain2paf](https://github.com/AndreaGuarracino/chain2paf).
