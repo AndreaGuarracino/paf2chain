@@ -41,15 +41,27 @@ fn main() {
         // Compute the fake CIGAR, in case the real one is missing in the line
         let query_len = paf_query_end(line) - paf_query_begin(line);
         let target_len = paf_target_end(line) - paf_target_begin(line);
-        let fake_cigar = format!(
-            "{}M",
-            if query_len < target_len {
-                query_len
-            } else {
-                target_len
-            }
-        );
+        let mut fake_cigar = String::new();
         if cigars.is_empty() {
+            fake_cigar.push_str(
+                &format!(
+                    "{}M",
+                    if query_len < target_len {
+                        query_len
+                    } else {
+                        target_len
+                    }
+                )
+            );
+            // If query and target have different lengths, we manage
+            // the excess length to obtain a valid fake CIGAR string
+            if query_len != target_len {
+                if query_len < target_len {
+                    fake_cigar.push_str(&format!("{}D", target_len - query_len));
+                } else {
+                    fake_cigar.push_str(&format!("{}I", query_len - target_len));
+                }
+            }
             cigars.push(fake_cigar.as_str());
         }
 
