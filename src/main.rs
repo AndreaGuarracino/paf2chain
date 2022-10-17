@@ -24,6 +24,7 @@ fn main() {
     let filename = matches.value_of("INPUT").unwrap();
     let paf = PafFile::new(filename);
 
+    let mut id = 0;
     let cigar_to_chain = |line: &str| {
         let query_rev = paf_query_is_rev(line);
         //let (x, y) = paf.global_start(line, query_rev);
@@ -76,7 +77,6 @@ fn main() {
         let q_strand = if query_rev { "-" } else { "+" };
         let q_start = paf_query_begin(line);
         let q_end = paf_query_end(line);
-        let id = 0;
         for mut cigar in cigars {
             //println!("{}", cigar);
 
@@ -156,6 +156,7 @@ fn main() {
                     chain_q_start, chain_q_end,
                     id
                 );
+                id += 1;
 
                 let mut ungapped_alignment_len: usize = 0;
                 let mut query_delta: usize = 0;
