@@ -1,7 +1,9 @@
 use boomphf::Mphf;
 use itertools::Itertools;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
+use flate2::read::GzDecoder;
 
 #[derive(Debug, Clone)]
 struct AlignedSeq {
@@ -81,7 +83,19 @@ pub fn paf_target_end(line: &str) -> usize {
 
 fn _for_each_line_in_file(paf_filename: &str, mut callback: impl FnMut(&str)) {
     let file = File::open(paf_filename).unwrap();
-    let reader = BufReader::new(file);
+    // Determine if the file is gzipped based on its extension
+    let gzipped = Path::new(paf_filename)
+        .extension()
+        .map_or(false, |ext| ext == "gz");
+
+    // Create a dynamic reader based on the file type
+    let box_reader: Box<dyn Read> = if gzipped {
+        Box::new(GzDecoder::new(file))
+    } else {
+        Box::new(file)
+    };
+
+    let reader = BufReader::new(box_reader);
     for line in reader.lines() {
         callback(&line.unwrap());
     }
@@ -109,7 +123,7 @@ impl PafFile {
             let query_id = query_mphf.hash(&query_name) as usize;
             if !seen_queries[query_id] {
                 seen_queries[query_id] = true;
-                let mut query = &mut queries[query_id];
+                let query = &mut queries[query_id];
                 query.name = query_name;
                 query.length = paf_query_length(l);
             }
@@ -117,7 +131,7 @@ impl PafFile {
             let target_id = target_mphf.hash(&target_name) as usize;
             if !seen_targets[target_id] {
                 seen_targets[target_id] = true;
-                let mut target = &mut targets[target_id];
+                let target = &mut targets[target_id];
                 target.name = target_name;
                 target.length = paf_target_length(l);
             }
@@ -129,7 +143,7 @@ impl PafFile {
         let mut target_offset: usize = 0;
         targets_sort.iter().for_each(|t| {
             let target_id = target_mphf.hash(&t.name) as usize;
-            let mut target = &mut targets[target_id];
+            let target = &mut targets[target_id];
             target.rank = target_idx;
             target_idx += 1;
             target.offset = target_offset;
@@ -141,7 +155,7 @@ impl PafFile {
         let mut query_offset: usize = 0;
         queries_sort.iter().for_each(|q| {
             let query_id = query_mphf.hash(&q.name) as usize;
-            let mut query = &mut queries[query_id];
+            let query = &mut queries[query_id];
             query.rank = query_idx;
             query_idx += 1;
             query.offset = query_offset;
