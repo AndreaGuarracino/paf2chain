@@ -8,7 +8,7 @@ use crate::paf::{PafFile, paf_query_end, paf_target, paf_target_length, paf_targ
 
 fn main() {
     let matches = App::new("paf2chain")
-        .version("0.1.0")
+        .version("0.1.1")
         .author("Andrea Guarracino")
         .about("Generate a CHAIN format file from a PAF format file")
         .arg(
