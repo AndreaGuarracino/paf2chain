@@ -1,4 +1,7 @@
 # paf2chain
+
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/paf2chain/README.html)
+
 convert PAF format to CHAIN format
 
 ## citation
