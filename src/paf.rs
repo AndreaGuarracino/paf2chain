@@ -3,7 +3,7 @@ use itertools::Itertools;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
-use flate2::read::GzDecoder;
+use flate2::read::MultiGzDecoder;
 
 #[derive(Debug, Clone)]
 struct AlignedSeq {
@@ -90,7 +90,7 @@ fn _for_each_line_in_file(paf_filename: &str, mut callback: impl FnMut(&str)) {
 
     // Create a dynamic reader based on the file type
     let box_reader: Box<dyn Read> = if gzipped {
-        Box::new(GzDecoder::new(file))
+        Box::new(MultiGzDecoder::new(file))
     } else {
         Box::new(file)
     };
